@@ -58,7 +58,7 @@ model: qwen3:8b
 从 GitHub Release 下载：
 
 ```text
-chatbot-windows-v0.1.0.zip
+chatbot-windows-v0.1.1.zip
 ```
 
 解压后双击：
@@ -156,11 +156,29 @@ release/
 生成的压缩包：
 
 ```text
-release/chatbot-windows-v0.1.0.zip
+release/chatbot-windows-v0.1.1.zip
 ```
 
 注意：Ollama 和大模型不会被打包进 exe。用户仍然需要自己安装 Ollama 并下载模型。
 
+## 版本规则
+
+Chatbot 使用常见的语义化版本号：
+
+```text
+主版本.次版本.修订版本
+```
+
+示例：
+
+- `0.1.1`：小修小改，例如性能优化、界面微调、提示词调整、Bug 修复
+- `0.2.0`：功能级更新，例如新增较完整的新模块或重要能力
+- `1.0.0`：稳定正式版，代表核心功能和使用体验进入相对稳定阶段
+
+当前版本：`0.1.1`
+
 ## 许可证
 
 本项目使用 MIT License。
+
+

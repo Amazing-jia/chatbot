@@ -32,6 +32,7 @@ from bot.history import append_chat_record
 from bot.logger import get_logger
 from bot.memory import add_memory, delete_memory_by_id, load_memory
 from bot.ollama_client import OllamaClient, OllamaConnectionError, OllamaResponseError
+from bot.version import APP_NAME, APP_VERSION, app_title
 from main import BASE_DIR, format_speed_line
 
 
@@ -75,7 +76,7 @@ class ChatGui(ctk.CTk):
         self.logger = get_logger(BASE_DIR)
         self._apply_theme_config(self.config.get("theme", {}))
 
-        self.title("Bot Buddy")
+        self.title(app_title())
         self.geometry("1120x720")
         self.minsize(1000, 650)
         self.configure(fg_color=Theme.app_bg)
@@ -110,6 +111,7 @@ class ChatGui(ctk.CTk):
             base_url=self.ollama_url,
             model=self.model,
             timeout=self.timeout,
+            think=self.ollama_think,
         )
 
         self._build_layout()
@@ -130,6 +132,7 @@ class ChatGui(ctk.CTk):
         self.model = str(config.get("model", "qwen3:8b"))
         self.ollama_url = str(config.get("ollama_url", "http://localhost:11434/api/chat"))
         self.timeout = int(config.get("request_timeout", 120))
+        self.ollama_think = bool(config.get("ollama_think", False))
         self.history_turns = int(config.get("history_turns_in_context", 8))
         self.persona_path = resolve_path(BASE_DIR, config.get("persona_path", "prompts/persona.md"))
         self.memory_path = resolve_path(BASE_DIR, config.get("memory_path", "data/memory.json"))
@@ -206,14 +209,14 @@ class ChatGui(ctk.CTk):
 
         ctk.CTkLabel(
             brand,
-            text="Bot Buddy",
+            text=APP_NAME,
             text_color=Theme.text,
             font=ctk.CTkFont(family=FONT, size=20, weight="bold"),
             anchor="w",
         ).grid(row=0, column=0, sticky="ew")
         ctk.CTkLabel(
             brand,
-            text="本地陪聊助手",
+            text=f"本地陪聊助手 · v{APP_VERSION}",
             text_color=Theme.soft_text,
             font=ctk.CTkFont(family=FONT, size=12),
             anchor="w",
@@ -1089,6 +1092,7 @@ class ChatGui(ctk.CTk):
         self.client.set_model(self.model)
         self.client.set_base_url(self.ollama_url)
         self.client.timeout = self.timeout
+        self.client.set_think(self.ollama_think)
         self.model_var.set(self.model)
 
     def _card(self, parent: ctk.CTkFrame) -> ctk.CTkFrame:
@@ -1577,15 +1581,21 @@ class ChatGui(ctk.CTk):
                 self._handle_event(event, payload)
         except queue.Empty:
             pass
-        self.after(30, self._poll_queue)
+        self.after(20, self._poll_queue)
 
     def _buffer_stream_chunk(self, bot_index: int, chunk: str) -> None:
         if not chunk:
             return
+        if bot_index < 0 or bot_index >= len(self.chat_messages):
+            return
+        current_text = self.chat_messages[bot_index][1]
+        if current_text == self.thinking_text:
+            self._update_message(bot_index, chunk)
+            return
         self.stream_buffers.setdefault(bot_index, []).append(chunk)
         if not self.stream_flush_scheduled:
             self.stream_flush_scheduled = True
-            self.after(30, self._flush_stream_buffers)
+            self.after(20, self._flush_stream_buffers)
 
     def _flush_stream_buffers(self) -> None:
         self.stream_flush_scheduled = False
@@ -1688,4 +1698,8 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+
 

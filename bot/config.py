@@ -61,6 +61,8 @@ DEFAULT_PERSONA = """# 本地私人陪聊伙伴人格设定
 
 
 DEFAULT_CONFIG: dict[str, Any] = {
+    "app_name": "Chatbot",
+    "app_version": "0.1.1",
     "model": "qwen3:8b",
     "ollama_url": "http://localhost:11434/api/chat",
     "persona_path": "prompts/persona.md",
@@ -229,4 +231,7 @@ def _backup_invalid_file(path: Path) -> Path:
     if path.exists():
         path.replace(backup_path)
     return backup_path
+
+
+
 

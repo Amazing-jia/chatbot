@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 import sys
@@ -209,3 +209,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

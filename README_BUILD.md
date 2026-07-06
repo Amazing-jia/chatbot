@@ -1,4 +1,4 @@
-# Build Chatbot for Windows
+﻿# Build Chatbot for Windows
 
 This project uses PyInstaller to build `Chatbot.exe`.
 
@@ -30,7 +30,7 @@ release/
   README.md
   README_BUILD.md
   LICENSE
-  chatbot-windows-v0.1.0.zip
+  chatbot-windows-v0.1.1.zip
 ```
 
 ## Release Zip
@@ -38,7 +38,7 @@ release/
 The zip file is:
 
 ```text
-release/chatbot-windows-v0.1.0.zip
+release/chatbot-windows-v0.1.1.zip
 ```
 
 Zip contents:
@@ -87,3 +87,7 @@ prompts/
 ```
 
 Do not move `Chatbot.exe` alone to another folder unless you also move its support files.
+
+
+当前构建版本由 build_exe.bat 中的 VERSION=0.1.1 控制。
+

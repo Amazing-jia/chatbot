@@ -1,4 +1,5 @@
 ﻿app_name: Chatbot
+app_version: 0.1.1
 model: qwen3:8b
 ollama_url: http://localhost:11434/api/chat
 persona_path: prompts/persona.md
@@ -11,6 +12,7 @@ app_state_path: data/app_state.json
 feedback_dir: data/feedback
 logs_dir: logs
 request_timeout: 120
+ollama_think: false
 
 context_settings:
   recent_rounds: 4
@@ -34,4 +36,6 @@ theme:
   accent_color: "#2563EB"
   background_color: "#F6F8FB"
   sidebar_color: "#F8FAFF"
+
+
 

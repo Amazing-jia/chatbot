@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from dataclasses import dataclass
@@ -63,10 +63,11 @@ def _chat_result_from_data(content: str, data: dict[str, Any]) -> ChatResult:
 class OllamaClient:
     """Small wrapper around Ollama's /api/chat endpoint."""
 
-    def __init__(self, base_url: str, model: str, timeout: int = 120) -> None:
+    def __init__(self, base_url: str, model: str, timeout: int = 120, think: bool | None = False) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout = timeout
+        self.think = think
 
     def _chat_url(self) -> str:
         """Return the chat endpoint, accepting either base URL or /api/chat URL."""
@@ -88,6 +89,10 @@ class OllamaClient:
     def set_model(self, model: str) -> None:
         """Switch the model used by later chat requests."""
         self.model = model
+
+    def set_think(self, think: bool | None) -> None:
+        """Switch Ollama thinking mode for models that support it."""
+        self.think = think
 
     def list_models(self) -> list[str]:
         """Return model names installed in local Ollama."""
@@ -133,6 +138,8 @@ class OllamaClient:
             "stream": False,
             "keep_alive": "30m",
         }
+        if self.think is not None:
+            payload["think"] = self.think
 
         try:
             response = requests.post(url, json=payload, timeout=self.timeout)
@@ -179,6 +186,8 @@ class OllamaClient:
             "stream": True,
             "keep_alive": "30m",
         }
+        if self.think is not None:
+            payload["think"] = self.think
 
         try:
             response = requests.post(url, json=payload, timeout=self.timeout, stream=True)
@@ -197,7 +206,7 @@ class OllamaClient:
         interrupted = False
 
         try:
-            for line in response.iter_lines(decode_unicode=True):
+            for line in response.iter_lines(chunk_size=1, decode_unicode=True):
                 if should_stop and should_stop():
                     interrupted = True
                     break
@@ -224,3 +233,7 @@ class OllamaClient:
 
         result = _chat_result_from_data("".join(chunks), final_data)
         yield {"type": "done", "result": result, "interrupted": interrupted}
+
+
+
+

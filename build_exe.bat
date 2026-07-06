@@ -4,7 +4,7 @@ setlocal
 cd /d "%~dp0"
 
 set APP_NAME=Chatbot
-set VERSION=0.1.0
+set VERSION=0.1.1
 set ZIP_NAME=chatbot-windows-v%VERSION%.zip
 set PYTHON_EXE=python
 
@@ -63,3 +63,4 @@ echo Before running the exe, make sure Ollama is installed and the model exists:
 echo   ollama pull qwen3:8b
 echo.
 endlocal
+
