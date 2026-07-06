@@ -1,0 +1,36 @@
+app_name: Chatbot
+model: qwen3:8b
+ollama_url: http://localhost:11434/api/chat
+persona_path: prompts/persona.md
+memory_path: data/memory.json
+diary_path: data/diary.jsonl
+history_path: data/chat_history.jsonl
+conversations_dir: data/conversations
+conversations_index_path: data/conversations_index.json
+app_state_path: data/app_state.json
+feedback_dir: data/feedback
+logs_dir: logs
+request_timeout: 120
+
+context_settings:
+  recent_rounds: 8
+  max_memory_items: 20
+  enable_conversation_summary: true
+  summary_trigger_rounds: 16
+  max_summary_chars: 600
+  include_diary_by_default: false
+
+companion_preferences:
+  reply_length: 适中
+  advice_level: 少给建议，先陪我聊
+  tone: 温柔生活化
+  follow_up_level: 适中
+  emoji_level: 偶尔使用
+  allow_roast_style: true
+
+theme:
+  appearance: light
+  primary_color: "#3B82F6"
+  accent_color: "#2563EB"
+  background_color: "#F6F8FB"
+  sidebar_color: "#F8FAFF"
