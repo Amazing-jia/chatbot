@@ -25,3 +25,4 @@ build.spec
 *.pth
 *.onnx
 self_use/
+tools/
