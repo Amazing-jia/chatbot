@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
@@ -9,10 +9,10 @@ from bot.persona import load_persona
 
 
 DEFAULT_CONTEXT_SETTINGS = {
-    "recent_rounds": 8,
-    "max_memory_items": 20,
+    "recent_rounds": 4,
+    "max_memory_items": 10,
     "enable_conversation_summary": True,
-    "summary_trigger_rounds": 16,
+    "summary_trigger_rounds": 12,
     "max_summary_chars": 600,
     "include_diary_by_default": False,
 }
@@ -82,9 +82,9 @@ def context_settings_from_config(config: dict[str, Any]) -> dict[str, Any]:
     settings = dict(DEFAULT_CONTEXT_SETTINGS)
     if isinstance(loaded, dict):
         settings.update(loaded)
-    settings["recent_rounds"] = _positive_int(settings.get("recent_rounds"), 8)
-    settings["max_memory_items"] = _positive_int(settings.get("max_memory_items"), 20)
-    settings["summary_trigger_rounds"] = _positive_int(settings.get("summary_trigger_rounds"), 16)
+    settings["recent_rounds"] = _positive_int(settings.get("recent_rounds"), 4)
+    settings["max_memory_items"] = _positive_int(settings.get("max_memory_items"), 10)
+    settings["summary_trigger_rounds"] = _positive_int(settings.get("summary_trigger_rounds"), 12)
     settings["max_summary_chars"] = _positive_int(settings.get("max_summary_chars"), 600)
     settings["enable_conversation_summary"] = bool(settings.get("enable_conversation_summary"))
     settings["include_diary_by_default"] = bool(settings.get("include_diary_by_default"))
@@ -150,3 +150,4 @@ def _positive_int(value: Any, default: int) -> int:
     except (TypeError, ValueError):
         parsed = default
     return max(1, parsed)
+

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import queue
 import threading
@@ -84,6 +84,10 @@ class ChatGui(ctk.CTk):
         self.is_sending = False
         self.stop_requested = False
         self.streaming_message_index: int | None = None
+        self.message_text_labels: dict[int, ctk.CTkLabel] = {}
+        self.stream_buffers: dict[int, list[str]] = {}
+        self.stream_flush_scheduled = False
+        self.thinking_text = "正在思考..."
         self.placeholder = "输入你的消息..."
         self.nav_buttons: dict[str, ctk.CTkButton] = {}
         self.conversation_buttons: dict[str, ctk.CTkButton] = {}
@@ -1126,15 +1130,22 @@ class ChatGui(ctk.CTk):
             self._render_message(speaker, text, timestamp, index)
         return index
 
-    def _update_message(self, index: int, text: str) -> None:
+    def _update_message(self, index: int, text: str, rerender_feedback: bool = False) -> None:
         if index < 0 or index >= len(self.chat_messages):
             return
         speaker, _old_text, timestamp = self.chat_messages[index]
         self.chat_messages[index] = (speaker, text, timestamp)
-        if self.current_page in {"\u5bf9\u8bdd", "???"} and hasattr(self, "message_list"):
-            self._rerender_chat_messages()
+        if self.current_page not in {"\u5bf9\u8bdd", "???"} or not hasattr(self, "message_list"):
+            return
+        label = self.message_text_labels.get(index)
+        if label is not None and not rerender_feedback:
+            label.configure(text=text)
+            self.after(20, self._scroll_to_bottom)
+            return
+        self._rerender_chat_messages()
 
     def _rerender_chat_messages(self) -> None:
+        self.message_text_labels.clear()
         for child in self.message_list.winfo_children():
             child.destroy()
         for index, (speaker, text, timestamp) in enumerate(self.chat_messages):
@@ -1161,6 +1172,8 @@ class ChatGui(ctk.CTk):
 
     def _clear_messages(self) -> None:
         self.chat_messages.clear()
+        self.message_text_labels.clear()
+        self.stream_buffers.clear()
         if hasattr(self, "message_list"):
             for child in self.message_list.winfo_children():
                 child.destroy()
@@ -1193,7 +1206,7 @@ class ChatGui(ctk.CTk):
             border_color=Theme.border,
         )
         bubble.grid(row=0, column=0, sticky="w")
-        ctk.CTkLabel(
+        text_label = ctk.CTkLabel(
             bubble,
             text=text,
             text_color=Theme.body,
@@ -1201,7 +1214,10 @@ class ChatGui(ctk.CTk):
             justify="left",
             anchor="w",
             wraplength=520,
-        ).grid(row=0, column=0, padx=16, pady=12)
+        )
+        text_label.grid(row=0, column=0, padx=16, pady=12)
+        if message_index is not None:
+            self.message_text_labels[message_index] = text_label
         self._timestamp(bubble_col, "w", timestamp).grid(row=1, column=0, sticky="w", pady=(5, 0))
         if self._should_show_feedback(message_index):
             self._feedback_bar(bubble_col, message_index, text).grid(row=2, column=0, sticky="w", pady=(6, 0))
@@ -1561,8 +1577,29 @@ class ChatGui(ctk.CTk):
                 self._handle_event(event, payload)
         except queue.Empty:
             pass
-        self.after(100, self._poll_queue)
+        self.after(30, self._poll_queue)
 
+    def _buffer_stream_chunk(self, bot_index: int, chunk: str) -> None:
+        if not chunk:
+            return
+        self.stream_buffers.setdefault(bot_index, []).append(chunk)
+        if not self.stream_flush_scheduled:
+            self.stream_flush_scheduled = True
+            self.after(30, self._flush_stream_buffers)
+
+    def _flush_stream_buffers(self) -> None:
+        self.stream_flush_scheduled = False
+        if not self.stream_buffers:
+            return
+        pending = self.stream_buffers
+        self.stream_buffers = {}
+        for bot_index, chunks in pending.items():
+            if not chunks or bot_index < 0 or bot_index >= len(self.chat_messages):
+                continue
+            current_text = self.chat_messages[bot_index][1]
+            merged = "".join(chunks)
+            next_text = merged if current_text == self.thinking_text else current_text + merged
+            self._update_message(bot_index, next_text)
     def _handle_event(self, event: str, payload: object) -> None:
         if event == "models":
             models = payload if isinstance(payload, list) else []
@@ -1591,12 +1628,7 @@ class ChatGui(ctk.CTk):
             bot_index, chunk = payload
             if not isinstance(bot_index, int) or not isinstance(chunk, str):
                 return
-            current_text = self.chat_messages[bot_index][1] if 0 <= bot_index < len(self.chat_messages) else ""
-            if current_text == "正在思考...":
-                next_text = chunk
-            else:
-                next_text = current_text + chunk
-            self._update_message(bot_index, next_text)
+            self._buffer_stream_chunk(bot_index, chunk)
             self._set_status("正在生成回复...")
             return
         if event == "stream_done":
@@ -1612,9 +1644,10 @@ class ChatGui(ctk.CTk):
             if isinstance(bot_index, int) and hasattr(result, "content"):
                 current_text = self.chat_messages[bot_index][1] if 0 <= bot_index < len(self.chat_messages) else ""
                 if result.content:
-                    self._update_message(bot_index, result.content)
-                elif interrupted and current_text == "正在思考...":
-                    self._update_message(bot_index, "（已停止，尚未生成内容。）")
+                    self._flush_stream_buffers()
+                    self._update_message(bot_index, result.content, rerender_feedback=True)
+                elif interrupted and current_text == self.thinking_text:
+                    self._update_message(bot_index, "（已停止，尚未生成内容。）", rerender_feedback=True)
                 if interrupted:
                     self._set_status("已停止生成，部分回复已保存。")
                 else:
@@ -1655,3 +1688,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

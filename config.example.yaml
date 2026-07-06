@@ -1,4 +1,4 @@
-app_name: Chatbot
+﻿app_name: Chatbot
 model: qwen3:8b
 ollama_url: http://localhost:11434/api/chat
 persona_path: prompts/persona.md
@@ -13,10 +13,10 @@ logs_dir: logs
 request_timeout: 120
 
 context_settings:
-  recent_rounds: 8
-  max_memory_items: 20
+  recent_rounds: 4
+  max_memory_items: 10
   enable_conversation_summary: true
-  summary_trigger_rounds: 16
+  summary_trigger_rounds: 12
   max_summary_chars: 600
   include_diary_by_default: false
 
@@ -34,3 +34,4 @@ theme:
   accent_color: "#2563EB"
   background_color: "#F6F8FB"
   sidebar_color: "#F8FAFF"
+

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from copy import deepcopy
 import shutil
@@ -74,10 +74,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "request_timeout": 120,
     "history_turns_in_context": 8,
     "context_settings": {
-        "recent_rounds": 8,
-        "max_memory_items": 20,
+        "recent_rounds": 4,
+        "max_memory_items": 10,
         "enable_conversation_summary": True,
-        "summary_trigger_rounds": 16,
+        "summary_trigger_rounds": 12,
         "max_summary_chars": 600,
         "include_diary_by_default": False,
     },
@@ -229,3 +229,4 @@ def _backup_invalid_file(path: Path) -> Path:
     if path.exists():
         path.replace(backup_path)
     return backup_path
+
